@@ -24,7 +24,9 @@ type MBPFCallProbe struct {
 
 //对象初始化
 func (this *MBPFCallProbe) Init(ctx context.Context, logger *log.Logger) error {
-	this.Module.Init(ctx, logger)
+	if err := this.Module.Init(ctx, logger); err != nil {
+		return err
+	}
 	this.Module.SetChild(this)
 	this.eventMaps = make([]*ebpf.Map, 0, 2)
 	this.eventFuncMaps = make(map[*ebpf.Map]IEventStruct)
@@ -138,10 +140,8 @@ func (this *MBPFCallProbe) dataHandler(cpu int, data []byte, perfmap *manager.Pe
 	this.Write(fmt.Sprintf("BPFCALL EVENT CPU:%d, %s", cpu, bpfEvent.String()))
 }
 
-// TODO 事件丢失统计
 func (this *MBPFCallProbe) lostEventsHandle(CPU int, count uint64, perfMap *manager.PerfMap, manager *manager.Manager) {
-	// TODO  参考 datadog-agent的 pkg/security/probe/perf_buffer_monitor.go 实现
-	// perfBufferMonitor.CountLostEvent(count, perfMap, CPU)
+	this.logger.Printf("lost %d BPF call events on CPU %d", count, CPU)
 }
 
 func (this *MBPFCallProbe) DecodeFun(em *ebpf.Map) (IEventStruct, bool) {

@@ -53,10 +53,10 @@ type Module struct {
 }
 
 // Init 对象初始化
-func (this *Module) Init(ctx context.Context, logger *log.Logger) {
+func (this *Module) Init(ctx context.Context, logger *log.Logger) error {
 	this.ctx = ctx
 	this.logger = logger
-	return
+	return nil
 }
 
 func (this *Module) SetChild(module IModule) {
@@ -86,14 +86,17 @@ func (this *Module) Run() error {
 		return err
 	}
 
+	// Start the shutdown handler goroutine before readEvents() blocks,
+	// so graceful shutdown via context cancellation works correctly.
+	go func() {
+		this.run()
+	}()
+
 	err = this.readEvents()
 	if err != nil {
 		return err
 	}
 
-	go func() {
-		this.run()
-	}()
 	return nil
 }
 func (this *Module) Stop() error {
@@ -105,9 +108,9 @@ func (this *Module) run() {
 	for {
 		select {
 		case _ = <-this.ctx.Done():
-			err := this.child.Stop()
+			err := this.child.Close()
 			if err != nil {
-				this.logger.Fatalf("stop Module:%s error:%v.", this.child.Name(), err)
+				this.logger.Fatalf("close Module:%s error:%v.", this.child.Name(), err)
 			}
 			return
 		}
@@ -131,6 +134,8 @@ func (this *Module) readEvents() error {
 		select {
 		case err := <-errChan:
 			return err
+		case <-this.ctx.Done():
+			return nil
 		}
 	}
 }
