@@ -1,0 +1,5 @@
+bin/
+.check_clang
+.check_go
+.checkver_clang
+.checkver_go
