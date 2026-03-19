@@ -24,7 +24,9 @@ type MJavaRasp struct {
 
 //对象初始化
 func (this *MJavaRasp) Init(ctx context.Context, logger *log.Logger) error {
-	this.Module.Init(ctx, logger)
+	if err := this.Module.Init(ctx, logger); err != nil {
+		return err
+	}
 	this.Module.SetChild(this)
 	this.eventMaps = make([]*ebpf.Map, 0, 2)
 	this.eventFuncMaps = make(map[*ebpf.Map]IEventStruct)

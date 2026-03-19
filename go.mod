@@ -8,7 +8,6 @@ require (
 	github.com/ehids/ebpfmanager v0.2.2
 	github.com/pkg/errors v0.9.1
 	github.com/shuLhan/go-bindata v4.0.0+incompatible
-	github.com/tredoe/osutil v1.0.6
 	golang.org/x/sys v0.0.0-20211210111614-af8b64212486
 )
 
